@@ -5,29 +5,10 @@ import (
 	"fmt"
 	"os"
 
-	MQTT "github.com/eclipse/paho.mqtt.golang"
 	pubsub "github.com/hiro-gh27/go-mqtt-bench2/pubsub"
 )
 
 const basetopic = "go-mqtt-bench/"
-
-// 実行パラメータ関係
-type execOptions struct {
-	Broker      string // Broker URI
-	Qos         byte   // QoS(0|1|2)
-	Retain      bool   // Retain
-	Debug       bool   //デバック
-	Topic       string // Topicのルート
-	Method      string // 実行メソッド
-	ClientNum   int    // クライアントの同時実行数
-	Count       int    // 1クライアント当たりのメッセージ数
-	MessageSize int    // 1メッセージのサイズ(byte)
-	sleepTime   int    // 実行前の待機時間(ms)
-	MaxInterval int    // メッセージ毎の実行間隔時間(ms)
-	test        bool   //テスト
-	trialNum    int    //試行回数
-	synBacklog  int    //net.ipv4.tcp_max_syn_backlog =
-}
 
 func main() {
 	opts := initOption()
@@ -39,9 +20,9 @@ func main() {
 	case "RTTconect":
 	}
 
-	var clients []MQTT.Client
+	//var clients []MQTT.Client
 
-	clients = pubsub.SyncConnect(opts)
+	clients := pubsub.SyncConnect(opts)
 	pubsub.SyncDisconnect(clients)
 }
 

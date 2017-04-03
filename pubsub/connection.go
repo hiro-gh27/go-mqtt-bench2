@@ -21,7 +21,7 @@ func SyncConnect(execOpts ExecOptions) []MQTT.Client {
 		token := client.Connect()
 		if token.Wait() && token.Error() != nil {
 			fmt.Printf("Connected error: %s\n", token.Error())
-			return nil
+			return clients
 		}
 		clients = append(clients, client)
 	}

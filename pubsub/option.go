@@ -17,3 +17,7 @@ type ExecOptions struct {
 	TrialNum    int    //試行回数
 	SynBacklog  int    //net.ipv4.tcp_max_syn_backlog =
 }
+
+// LoadOptions is
+type LoadOptions struct {
+}
