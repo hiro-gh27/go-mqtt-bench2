@@ -22,7 +22,7 @@ func main() {
 
 	//var clients []MQTT.Client
 
-	clients := pubsub.SyncConnect(opts)
+	clients := pubsub.AsyscConnect(opts)
 	pubsub.SyncDisconnect(clients)
 }
 

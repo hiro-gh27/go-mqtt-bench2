@@ -6,19 +6,19 @@ import (
 	MQTT "github.com/eclipse/paho.mqtt.golang"
 )
 
-// ReturnConnect is
-type ReturnConnect struct {
-	StartTime time.Time   // when trial for connect start
-	EndTime   time.Time   // when trial for connect end
-	RTT       time.Time   // =(endtime - starttime)
-	Client    MQTT.Client //client
-	ClientID  string      // identification times
+// ConnectResult is
+type ConnectResult struct {
+	StartTime time.Time     // when trial for connect start
+	EndTime   time.Time     // when trial for connect end
+	DurTime   time.Duration // =[endtime - starttime]
+	Client    MQTT.Client   //client
+	ClientID  string        // identification times
 }
 
-// ReturnPublish is
-type ReturnPublish struct {
+// PublishResult is
+type PublishResult struct {
 }
 
-// ReturnSubscribe is
-type ReturnSubscribe struct {
+// SubscribeResult is
+type SubscribeResult struct {
 }

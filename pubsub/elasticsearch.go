@@ -43,7 +43,7 @@ func Elastic() {
 		// Handle error
 		panic(err)
 	}
-	fmt.Printf("Elasticsearch returned with code %d and version %s", code, info.Version.Number)
+	fmt.Printf("Elasticsearch returned with code %d and version %s. ", code, info.Version.Number)
 
 	// Getting the ES version number is quite common, so there's a shortcut
 	esversion, err := client.ElasticsearchVersion("http://127.0.0.1:9200")
@@ -51,7 +51,7 @@ func Elastic() {
 		// Handle error
 		panic(err)
 	}
-	fmt.Printf("Elasticsearch version %s", esversion)
+	fmt.Printf("Elasticsearch version %s\n", esversion)
 
 	// Use the IndexExists service to check if a specified index exists.
 	exists, err := client.IndexExists("twitter").Do(ctx)
