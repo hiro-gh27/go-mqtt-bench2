@@ -4,6 +4,7 @@ import (
 	"flag"
 	"fmt"
 	"os"
+	"runtime"
 
 	pubsub "github.com/hiro-gh27/go-mqtt-bench2/pubsub"
 )
@@ -11,6 +12,9 @@ import (
 const basetopic = "go-mqtt-bench/"
 
 func main() {
+	cpus := runtime.NumCPU()
+	runtime.GOMAXPROCS(cpus)
+
 	opts := initOption()
 
 	switch opts.Method {
@@ -22,8 +26,9 @@ func main() {
 
 	//var clients []MQTT.Client
 
-	clients := pubsub.AsyscConnect(opts)
+	clients := pubsub.SyncConnect(opts)
 	pubsub.SyncDisconnect(clients)
+	fmt.Println("program is success!!")
 }
 
 func initOption() pubsub.ExecOptions {

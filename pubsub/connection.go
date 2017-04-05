@@ -4,9 +4,8 @@ import (
 	"fmt"
 	"os"
 	"strconv"
-	"time"
-
 	"sync"
+	"time"
 
 	MQTT "github.com/eclipse/paho.mqtt.golang"
 )
@@ -14,7 +13,8 @@ import (
 func connect(id int, broker string) ConnectResult {
 	var cRresult ConnectResult
 	prosessID := strconv.FormatInt(int64(os.Getpid()), 16)
-	clientID := fmt.Sprintf("go-mqtt-bench%s-%d", prosessID, id)
+	//clientID := fmt.Sprintf("go-mqtt-bench%s-%d", prosessID, id)
+	clientID := fmt.Sprintf("%s-%d", prosessID, id)
 	opts := MQTT.NewClientOptions()
 	opts.AddBroker(broker)
 	opts.SetClientID(clientID)
@@ -63,19 +63,16 @@ func SyncConnect(execOpts ExecOptions) []MQTT.Client {
 		SyncDisconnect(clients)
 		os.Exit(0)
 	}
-
-	for _, r := range cResults {
-		fmt.Printf("Durtime=%s \n", r.DurTime)
-	}
 	/*
 		TODO
-		   ElasticSearch
+		   export ElasticSearch
 	*/
+	CDebug(cResults)
 	return clients
 }
 
-// AsyscConnect is
-func AsyscConnect(execOpts ExecOptions) []MQTT.Client {
+// AsyncConnect is
+func AsyncConnect(execOpts ExecOptions) []MQTT.Client {
 	var cResults []ConnectResult
 	wg := sync.WaitGroup{}
 	broker := execOpts.Broker
@@ -94,13 +91,12 @@ func AsyscConnect(execOpts ExecOptions) []MQTT.Client {
 		SyncDisconnect(clients)
 		os.Exit(0)
 	}
-	for _, r := range cResults {
-		fmt.Printf("ID=%s Durtime=%s \n", r.ClientID, r.DurTime)
-	}
+
 	/*
 		TODO
-			ElasticSearch
+			export ElasticSearch
 	*/
+	CDebug(cResults)
 	return clients
 }
 
@@ -128,53 +124,3 @@ func AsyncDisconnect(clients []MQTT.Client) {
 func LoadConnect() {
 
 }
-
-/*
-ゴミ置場
-
-func connect(id int, broker string) MQTT.Client {
-	prosessID := strconv.FormatInt(int64(os.Getpid()), 16)
-	clientID := fmt.Sprintf("go-mqtt-bench%s-%d", prosessID, id)
-	opts := MQTT.NewClientOptions()
-	opts.AddBroker(broker)
-	opts.SetClientID(clientID)
-	client := MQTT.NewClient(opts)
-	token := client.Connect()
-	if token.Wait() && token.Error() != nil {
-		fmt.Printf("Connected error: %s\n", token.Error())
-		client = nil
-	}
-	return client
-}
-
-func iscompleat(clients []MQTT.Client) bool {
-	for _, client := range clients {
-		if client == nil {
-			return false
-		}
-	}
-	return true
-}
-
-// SyncConnect is
-func SyncConnect(execOpts ExecOptions) []MQTT.Client {
-	var clients []MQTT.Client
-	broker := execOpts.Broker
-	for id := 0; id < execOpts.ClientNum; id++ {
-		client := connect(id, broker)
-		clients = append(clients, client)
-	}
-	if iscompleat(clients) == false {
-		var rClient []MQTT.Client
-		for _, client := range clients {
-			if client != nil {
-				rClient = append(rClient, client)
-			}
-		}
-		SyncDisconnect(rClient)
-		os.Exit(0)
-	}
-	return clients
-}
-
-*/
