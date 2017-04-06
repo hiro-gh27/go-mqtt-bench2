@@ -27,10 +27,12 @@ func iscompleat(results []ConnectResult) ([]MQTT.Client, bool) {
 	return clietns, haserr
 }
 
+/**
+ * #### SyncMode ####
+ */
 func connect(id int, broker string) ConnectResult {
 	var cRresult ConnectResult
 	prosessID := strconv.FormatInt(int64(os.Getpid()), 16)
-	//clientID := fmt.Sprintf("go-mqtt-bench%s-%d", prosessID, id)
 	clientID := fmt.Sprintf("%s-%d", prosessID, id)
 	opts := MQTT.NewClientOptions()
 	opts.AddBroker(broker)
@@ -54,7 +56,7 @@ func connect(id int, broker string) ConnectResult {
 }
 
 // SyncConnect is
-func SyncConnect(execOpts ExecOptions) []MQTT.Client {
+func SyncConnect(execOpts ConnectOptions) []MQTT.Client {
 	var cResults []ConnectResult
 	broker := execOpts.Broker
 	for id := 0; id < execOpts.ClientNum; id++ {
@@ -66,14 +68,14 @@ func SyncConnect(execOpts ExecOptions) []MQTT.Client {
 		SyncDisconnect(clients)
 		os.Exit(0)
 	}
-	/*
-		TODO
-		   export ElasticSearch
-	*/
-	CDebug(cResults)
+	time.Sleep(3000 * time.Millisecond)
+	DumpConnectResults(cResults)
 	return clients
 }
 
+/**
+ * ### AsyncMode ###
+ */
 func async(id int, broker string, freeze *sync.WaitGroup) ConnectResult {
 	var cRresult ConnectResult
 	var waitTime time.Duration
@@ -88,13 +90,10 @@ func async(id int, broker string, freeze *sync.WaitGroup) ConnectResult {
 	if maxInterval > 0 {
 		waitTime = RandomInterval(maxInterval)
 	}
-	//fmt.Print("ready!!")
 	freeze.Wait()
 	if waitTime > 0 {
 		time.Sleep(waitTime)
 	}
-	//fmt.Printf("wait time is: %s\n", waitTime)
-	fmt.Printf("In connect prosessID is: %s\n", prosessID)
 
 	startTime := time.Now()
 	token := client.Connect()
@@ -113,7 +112,7 @@ func async(id int, broker string, freeze *sync.WaitGroup) ConnectResult {
 }
 
 // AsyncConnect is
-func AsyncConnect(execOpts ExecOptions) []MQTT.Client {
+func AsyncConnect(execOpts ConnectOptions) []MQTT.Client {
 	var cResults []ConnectResult
 	maxInterval = execOpts.MaxInterval
 	wg := &sync.WaitGroup{}
@@ -134,27 +133,13 @@ func AsyncConnect(execOpts ExecOptions) []MQTT.Client {
 
 	clients, haserr := iscompleat(cResults)
 	if haserr {
+		fmt.Println("### Error!! ###")
 		SyncDisconnect(clients)
 		os.Exit(0)
 	}
-	/*
-		TODO
-			export ElasticSearch
-	*/
-	CDebug(cResults)
+	DumpConnectResults(cResults)
 	return clients
 }
-
-/*
-func randomInterval() time.Duration {
-	var td time.Duration
-	if maxInterval > 0 {
-		interval := rand.Intn(maxInterval)
-		td = time.Duration(interval) * time.Millisecond
-	}
-	return td
-}
-*/
 
 // SyncDisconnect is
 func SyncDisconnect(clinets []MQTT.Client) {

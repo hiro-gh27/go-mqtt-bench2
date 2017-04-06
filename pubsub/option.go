@@ -23,8 +23,12 @@ type ExecOptions struct {
 	AsyncFlag   bool   //ture mean asyncmode
 }
 
-// LoadOptions is
-type LoadOptions struct {
+// ConnectOptions is
+type ConnectOptions struct {
+	Broker      string // Broker URI
+	AsyncFlag   bool   //ture mean asyncmode
+	ClientNum   int    // クライアントの同時実行数
+	MaxInterval int    // メッセージ毎の実行間隔時間(ms)
 }
 
 // PublishOptions is
@@ -38,4 +42,8 @@ type PublishOptions struct {
 	MessageSize        int
 	MaxPublishIntarval int
 	Qos                byte
+}
+
+// LoadOptions is
+type LoadOptions struct {
 }

@@ -22,6 +22,7 @@ type PublishResult struct {
 	DurTime   time.Duration // =[endtime - starttime]
 	Topic     string        // = MessageID(basetopic/clientID/tiralNum)
 	ClientID  string        //
+	Message   string
 }
 
 // SubscribeResult is

@@ -56,7 +56,7 @@ func initOption() pubsub.ExecOptions {
 	retain := flag.Bool("retain", false, "MQTT Retain")
 	topic := flag.String("topic", base, "Base topic")
 	clients := flag.Int("clients", 10, "Number of clients")
-	count := flag.Int("count", 100, "Number of loops per client")
+	count := flag.Int("count", 10, "Number of loops per client")
 	size := flag.Int("size", 1024, "Message size per publish (byte)")
 	sleepTime := flag.Int("sleep", 3000, "sleep wait time (ms)")
 	intervalTime := flag.Int("interval", 0, "Interval time per message (ms)")
@@ -74,7 +74,7 @@ func initOption() pubsub.ExecOptions {
 
 	if broker == nil || *broker == "" || *broker == "tcp://{host}:{port}" {
 		fmt.Println("Use Default Broker= tcp://10.0.0.4:1883")
-		*broker = "tcp://10.0.0.4:1883"
+		*broker = "tcp://10.0.0.10:1883"
 		//*broker = "tcp://localhost:1883"
 	}
 
