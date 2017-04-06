@@ -9,7 +9,9 @@ func (x sortResults) Len() int { return len(x) }
 func (x sortResults) Less(i, j int) bool {
 	itime := x[i].StartTime
 	jtime := x[j].StartTime
-	return itime.Nanosecond() < jtime.Nanosecond()
+	dtime := jtime.Sub(itime)
+	return dtime > 0
+	//return itime.Nanosecond() < jtime.Nanosecond()
 }
 func (x sortResults) Swap(i, j int) { x[i], x[j] = x[j], x[i] }
 
@@ -26,8 +28,13 @@ func CDebug(cResults []ConnectResult) {
 
 	fastTime := cResults[0].StartTime
 	slowTime := cResults[len(cResults)-1].StartTime
-	dtime := slowTime.Sub(fastTime)
-	clientNum := len(cResults)
+	durtime := slowTime.Sub(fastTime)
+	clientNum := int64(len(cResults))
 
-	fmt.Printf("#### dtime= %s, clientNum=%d #### \n", dtime, clientNum)
+	nanoTime := durtime.Nanoseconds()                 //nano秒に変換
+	perClient := nanoTime / clientNum                 //1connectにかかったnano秒
+	throuput := float64(1000000 / float64(perClient)) //1ms=1000000. 1ms/コネクション時間
+
+	fmt.Printf("#### dtime= %s, clientNum=%d, duration=%dns, %dns/clinet, %f client/ms #### \n",
+		durtime, clientNum, nanoTime, perClient, throuput)
 }

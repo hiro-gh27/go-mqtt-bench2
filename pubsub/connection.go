@@ -2,6 +2,7 @@ package pubsub
 
 import (
 	"fmt"
+	"math/rand"
 	"os"
 	"strconv"
 	"sync"
@@ -9,6 +10,8 @@ import (
 
 	MQTT "github.com/eclipse/paho.mqtt.golang"
 )
+
+var maxInterval int
 
 func connect(id int, broker string) ConnectResult {
 	var cRresult ConnectResult
@@ -71,19 +74,56 @@ func SyncConnect(execOpts ExecOptions) []MQTT.Client {
 	return clients
 }
 
+func connect2(id int, broker string, freeze *sync.WaitGroup) ConnectResult {
+	var cRresult ConnectResult
+	prosessID := strconv.FormatInt(int64(os.Getpid()), 16)
+	//clientID := fmt.Sprintf("go-mqtt-bench%s-%d", prosessID, id)
+	clientID := fmt.Sprintf("%s-%d", prosessID, id)
+	opts := MQTT.NewClientOptions()
+	opts.AddBroker(broker)
+	opts.SetClientID(clientID)
+	client := MQTT.NewClient(opts)
+	//<-wait
+	fmt.Print("ready!!")
+	freeze.Wait()
+	startTime := time.Now()
+	fmt.Printf("go-%d", id)
+	randomSleep()
+	//fmt.Println(id)
+
+	token := client.Connect()
+	if token.Wait() && token.Error() != nil {
+		fmt.Printf("Connected error: %s\n", token.Error())
+		client = nil
+	}
+	endTime := time.Now()
+
+	cRresult.StartTime = startTime
+	cRresult.EndTime = endTime
+	cRresult.DurTime = endTime.Sub(startTime)
+	cRresult.Client = client
+	cRresult.ClientID = clientID
+	return cRresult
+}
+
 // AsyncConnect is
 func AsyncConnect(execOpts ExecOptions) []MQTT.Client {
 	var cResults []ConnectResult
-	wg := sync.WaitGroup{}
+	maxInterval = execOpts.MaxInterval
+	wg := &sync.WaitGroup{}
+	freeze := &sync.WaitGroup{}
+	freeze.Add(1)
 	broker := execOpts.Broker
 	for id := 0; id < execOpts.ClientNum; id++ {
 		wg.Add(1)
 		go func(id int) {
-			r := connect(id, broker)
+			defer wg.Done()
+			r := connect2(id, broker, freeze)
 			cResults = append(cResults, r)
-			wg.Done()
 		}(id)
 	}
+	time.Sleep(3 * time.Second)
+	freeze.Done() //signal all goroutine
 	wg.Wait()
 
 	clients, haserr := iscompleat(cResults)
@@ -98,6 +138,13 @@ func AsyncConnect(execOpts ExecOptions) []MQTT.Client {
 	*/
 	CDebug(cResults)
 	return clients
+}
+
+func randomSleep() {
+	if maxInterval > 0 {
+		interval := rand.Intn(maxInterval)
+		time.Sleep(time.Duration(interval) * time.Millisecond)
+	}
 }
 
 // SyncDisconnect is

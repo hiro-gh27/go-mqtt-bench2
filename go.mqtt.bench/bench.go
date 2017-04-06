@@ -3,8 +3,10 @@ package main
 import (
 	"flag"
 	"fmt"
+	"math/rand"
 	"os"
 	"runtime"
+	"time"
 
 	pubsub "github.com/hiro-gh27/go-mqtt-bench2/pubsub"
 )
@@ -12,6 +14,8 @@ import (
 const basetopic = "go-mqtt-bench/"
 
 func main() {
+	rand.Seed(time.Now().UnixNano())
+
 	cpus := runtime.NumCPU()
 	runtime.GOMAXPROCS(cpus)
 
@@ -26,7 +30,7 @@ func main() {
 
 	//var clients []MQTT.Client
 
-	clients := pubsub.SyncConnect(opts)
+	clients := pubsub.AsyncConnect(opts)
 	pubsub.SyncDisconnect(clients)
 	fmt.Println("program is success!!")
 }
@@ -41,7 +45,7 @@ func initOption() pubsub.ExecOptions {
 	count := flag.Int("count", 100, "Number of loops per client")
 	size := flag.Int("size", 1024, "Message size per publish (byte)")
 	sleepTime := flag.Int("sleep", 3000, "sleep wait time (ms)")
-	intervalTime := flag.Int("intervaltime", 0, "Interval time per message (ms)")
+	intervalTime := flag.Int("interval", 0, "Interval time per message (ms)")
 	trial := flag.Int("trial", 1, "trial is number of how many loops are")
 	synBacklog := flag.Int("syn", 128, "net.ipv4.tcp_max_syn_backlog = ")
 	debug := flag.Bool("x", false, "Debug mode")
@@ -55,7 +59,8 @@ func initOption() pubsub.ExecOptions {
 
 	if broker == nil || *broker == "" || *broker == "tcp://{host}:{port}" {
 		fmt.Println("Use Default Broker= tcp://10.0.0.4:1883")
-		*broker = "tcp://10.0.0.4:1883"
+		*broker = "tcp://10.0.0.10:1883"
+		//*broker = "tcp://localhost:1883"
 	}
 
 	method := ""
