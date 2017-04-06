@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"os"
 	"strconv"
+	"sync"
 	"time"
 
 	MQTT "github.com/eclipse/paho.mqtt.golang"
@@ -33,7 +34,6 @@ func spub(pOpts PublishOptions) PublishResult {
 	token := pOpts.Client.Publish(topic, qos, false, message)
 	token.Wait()
 	endTime := time.Now()
-	//fmt.Println(basetopic)
 
 	pResult.StartTime = startTime
 	pResult.EndTime = endTime
@@ -62,7 +62,7 @@ func SyncPublish(clients []MQTT.Client, opts ExecOptions) {
 }
 
 // "async publish""
-func aspub() []PublishResult {
+func aspub(pOpts PublishOptions) []PublishResult {
 	var pResults []PublishResult
 	return pResults
 }
@@ -72,12 +72,23 @@ func AsyncPublish(clients []MQTT.Client, opts ExecOptions) {
 	//prosessID := strconv.FormatInt(int64(os.Getpid()), 16)
 	//clientID := fmt.Sprintf("%s-%d", prosessID, id)
 	//fmt.Printf("In asyncpublish prosessID is: %s\n", prosessID)
-	//wg := &sync.WaitGroup{}
-	for index := 0; index < opts.TrialNum; index++ {
-		for id := 0; id < opts.ClientNum; id++ {
-
-		}
+	var pResults []PublishResult
+	wg := &sync.WaitGroup{}
+	freeze := &sync.WaitGroup{}
+	freeze.Add(1)
+	for id := 0; id < len(clients); id++ {
+		wg.Add(1)
+		go func(id int) {
+			defer wg.Done()
+			var pOpts PublishOptions
+			pOpts.Client = clients[id]
+			pOpts.ID = id
+			pOpts.Count = opts.Count
+			r := aspub(pOpts)
+			pResults = append(pResults, r)
+		}(id)
 	}
+	wg.Wait()
 }
 
 // LoadPublish is

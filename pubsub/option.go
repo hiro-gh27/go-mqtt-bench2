@@ -32,6 +32,7 @@ type PublishOptions struct {
 	Client   MQTT.Client
 	ID       int
 	TrialNum int
+	Count    int
 
 	ProsessID          string
 	MessageSize        int
