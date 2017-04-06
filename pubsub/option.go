@@ -33,15 +33,28 @@ type ConnectOptions struct {
 
 // PublishOptions is
 type PublishOptions struct {
-	Client   MQTT.Client
-	ID       int
-	TrialNum int
-	Count    int
-
+	Client             MQTT.Client
+	ID                 int
+	TrialNum           int
+	Count              int
 	ProsessID          string
 	MessageSize        int
 	MaxPublishIntarval int
 	Qos                byte
+}
+
+// PublishOptions2 is
+type PublishOptions2 struct {
+	//	Broker      string // Broker URI
+	Qos         byte          // QoS(0|1|2)
+	Retain      bool          // Retain
+	Topic       string        // Topicのルート
+	ClientNum   int           // クライアントの同時実行数
+	Count       int           // 1クライアント当たりのメッセージ数
+	MessageSize int           // 1メッセージのサイズ(byte)
+	MaxInterval int           // メッセージ毎の実行間隔時間(ms)
+	AsyncFlag   bool          //ture mean asyncmode
+	Clients     []MQTT.Client //クライアントをスライスで確保!!
 }
 
 // LoadOptions is

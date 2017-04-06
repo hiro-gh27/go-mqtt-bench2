@@ -128,7 +128,7 @@ func AsyncConnect(execOpts ConnectOptions) []MQTT.Client {
 		}(id)
 	}
 	time.Sleep(3 * time.Second)
-	freeze.Done() // <- signal all goroutine
+	freeze.Done()
 	wg.Wait()
 
 	clients, haserr := iscompleat(cResults)
@@ -138,6 +138,7 @@ func AsyncConnect(execOpts ConnectOptions) []MQTT.Client {
 		os.Exit(0)
 	}
 	DumpConnectResults(cResults)
+
 	return clients
 }
 
@@ -171,12 +172,13 @@ func NomalConnect(broker string, number int) []MQTT.Client {
 	var clients []MQTT.Client
 	for index := 0; index < number; index++ {
 		prosessID := strconv.FormatInt(int64(os.Getpid()), 16)
-		clientID := fmt.Sprintf("%s-%d", prosessID, number)
+		clientID := fmt.Sprintf("%s-%d", prosessID, index)
 		opts := MQTT.NewClientOptions()
 		opts.AddBroker(broker)
 		opts.SetClientID(clientID)
 		client := MQTT.NewClient(opts)
 
+		// connect and wait token or error
 		token := client.Connect()
 		if token.Wait() && token.Error() != nil {
 			fmt.Printf("Connected error: %s\n", token.Error())
