@@ -58,7 +58,6 @@ func RandomMessage(strlen int) string {
 
 // DumpConnectResults is
 func DumpConnectResults(cResults []ConnectResult) {
-
 	sort.Sort(sortResults(cResults))
 	for _, r := range cResults {
 		fmt.Printf("ID=%s, sTime=%s, eTime=%s, Durtime=%s \n",

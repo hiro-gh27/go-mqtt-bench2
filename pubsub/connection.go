@@ -30,7 +30,7 @@ func iscompleat(results []ConnectResult) ([]MQTT.Client, bool) {
 /**
  * #### SyncMode ####
  */
-func connect(id int, broker string) ConnectResult {
+func syncconnect(id int, broker string) ConnectResult {
 	var cRresult ConnectResult
 	prosessID := strconv.FormatInt(int64(os.Getpid()), 16)
 	clientID := fmt.Sprintf("%s-%d", prosessID, id)
@@ -60,7 +60,7 @@ func SyncConnect(execOpts ConnectOptions) []MQTT.Client {
 	var cResults []ConnectResult
 	broker := execOpts.Broker
 	for id := 0; id < execOpts.ClientNum; id++ {
-		r := connect(id, broker)
+		r := syncconnect(id, broker)
 		cResults = append(cResults, r)
 	}
 	clients, haserr := iscompleat(cResults)
@@ -76,7 +76,7 @@ func SyncConnect(execOpts ConnectOptions) []MQTT.Client {
 /**
  * ### AsyncMode ###
  */
-func async(id int, broker string, freeze *sync.WaitGroup) ConnectResult {
+func asynconnect(id int, broker string, freeze *sync.WaitGroup) ConnectResult {
 	var cRresult ConnectResult
 	var waitTime time.Duration
 
@@ -123,7 +123,7 @@ func AsyncConnect(execOpts ConnectOptions) []MQTT.Client {
 		wg.Add(1)
 		go func(id int) {
 			defer wg.Done()
-			r := async(id, broker, freeze)
+			r := asynconnect(id, broker, freeze)
 			cResults = append(cResults, r)
 		}(id)
 	}
@@ -164,4 +164,37 @@ func AsyncDisconnect(clients []MQTT.Client) {
 // LoadConnect is
 func LoadConnect() {
 
+}
+
+// NomalConnect is don't get time stamps so use by pub or sub.
+func NomalConnect(broker string, number int) []MQTT.Client {
+	var clients []MQTT.Client
+	for index := 0; index < number; index++ {
+		prosessID := strconv.FormatInt(int64(os.Getpid()), 16)
+		clientID := fmt.Sprintf("%s-%d", prosessID, number)
+		opts := MQTT.NewClientOptions()
+		opts.AddBroker(broker)
+		opts.SetClientID(clientID)
+		client := MQTT.NewClient(opts)
+
+		token := client.Connect()
+		if token.Wait() && token.Error() != nil {
+			fmt.Printf("Connected error: %s\n", token.Error())
+			client = nil
+		}
+		clients = append(clients, client)
+	}
+
+	var containClient []MQTT.Client
+	for _, c := range clients {
+		if c != nil {
+			containClient = append(containClient, c)
+		}
+	}
+	if len(containClient) < len(clients) {
+		println("### Error!! ###")
+		SyncDisconnect(containClient)
+	}
+
+	return clients
 }
