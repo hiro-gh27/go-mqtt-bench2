@@ -17,8 +17,15 @@ type ConnectResult struct {
 
 // PublishResult is
 type PublishResult struct {
+	StartTime time.Time     // when trial for connect start
+	EndTime   time.Time     // when trial for connect end
+	DurTime   time.Duration // =[endtime - starttime]
+	Topic     string        // = MessageID(basetopic/clientID/tiralNum)
+	ClientID  string        //
 }
 
 // SubscribeResult is
 type SubscribeResult struct {
+	timestamp time.Time //
+	MessageID string    //
 }

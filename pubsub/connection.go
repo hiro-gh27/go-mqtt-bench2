@@ -2,7 +2,6 @@ package pubsub
 
 import (
 	"fmt"
-	"math/rand"
 	"os"
 	"strconv"
 	"sync"
@@ -12,6 +11,21 @@ import (
 )
 
 var maxInterval int
+var average time.Time
+
+// MQTT.clinet=nilに対してdisconnect要求するとpanicに陥るので, 中身があるかどうかをチェックする必要がある.
+func iscompleat(results []ConnectResult) ([]MQTT.Client, bool) {
+	var clietns []MQTT.Client
+	haserr := false
+	for _, r := range results {
+		if r.Client != nil {
+			clietns = append(clietns, r.Client)
+		} else {
+			haserr = true
+		}
+	}
+	return clietns, haserr
+}
 
 func connect(id int, broker string) ConnectResult {
 	var cRresult ConnectResult
@@ -39,20 +53,6 @@ func connect(id int, broker string) ConnectResult {
 	return cRresult
 }
 
-// MQTT.clinet=nilに対してdisconnect要求するとpanicに陥るので, 中身があるかどうかをチェックする必要がある.
-func iscompleat(results []ConnectResult) ([]MQTT.Client, bool) {
-	var clietns []MQTT.Client
-	haserr := false
-	for _, r := range results {
-		if r.Client != nil {
-			clietns = append(clietns, r.Client)
-		} else {
-			haserr = true
-		}
-	}
-	return clietns, haserr
-}
-
 // SyncConnect is
 func SyncConnect(execOpts ExecOptions) []MQTT.Client {
 	var cResults []ConnectResult
@@ -74,23 +74,29 @@ func SyncConnect(execOpts ExecOptions) []MQTT.Client {
 	return clients
 }
 
-func connect2(id int, broker string, freeze *sync.WaitGroup) ConnectResult {
+func async(id int, broker string, freeze *sync.WaitGroup) ConnectResult {
 	var cRresult ConnectResult
+	var waitTime time.Duration
+
 	prosessID := strconv.FormatInt(int64(os.Getpid()), 16)
-	//clientID := fmt.Sprintf("go-mqtt-bench%s-%d", prosessID, id)
 	clientID := fmt.Sprintf("%s-%d", prosessID, id)
 	opts := MQTT.NewClientOptions()
 	opts.AddBroker(broker)
 	opts.SetClientID(clientID)
 	client := MQTT.NewClient(opts)
-	//<-wait
-	fmt.Print("ready!!")
-	freeze.Wait()
-	startTime := time.Now()
-	fmt.Printf("go-%d", id)
-	randomSleep()
-	//fmt.Println(id)
 
+	if maxInterval > 0 {
+		waitTime = RandomInterval(maxInterval)
+	}
+	//fmt.Print("ready!!")
+	freeze.Wait()
+	if waitTime > 0 {
+		time.Sleep(waitTime)
+	}
+	//fmt.Printf("wait time is: %s\n", waitTime)
+	fmt.Printf("In connect prosessID is: %s\n", prosessID)
+
+	startTime := time.Now()
 	token := client.Connect()
 	if token.Wait() && token.Error() != nil {
 		fmt.Printf("Connected error: %s\n", token.Error())
@@ -118,12 +124,12 @@ func AsyncConnect(execOpts ExecOptions) []MQTT.Client {
 		wg.Add(1)
 		go func(id int) {
 			defer wg.Done()
-			r := connect2(id, broker, freeze)
+			r := async(id, broker, freeze)
 			cResults = append(cResults, r)
 		}(id)
 	}
 	time.Sleep(3 * time.Second)
-	freeze.Done() //signal all goroutine
+	freeze.Done() // <- signal all goroutine
 	wg.Wait()
 
 	clients, haserr := iscompleat(cResults)
@@ -131,7 +137,6 @@ func AsyncConnect(execOpts ExecOptions) []MQTT.Client {
 		SyncDisconnect(clients)
 		os.Exit(0)
 	}
-
 	/*
 		TODO
 			export ElasticSearch
@@ -140,12 +145,16 @@ func AsyncConnect(execOpts ExecOptions) []MQTT.Client {
 	return clients
 }
 
-func randomSleep() {
+/*
+func randomInterval() time.Duration {
+	var td time.Duration
 	if maxInterval > 0 {
 		interval := rand.Intn(maxInterval)
-		time.Sleep(time.Duration(interval) * time.Millisecond)
+		td = time.Duration(interval) * time.Millisecond
 	}
+	return td
 }
+*/
 
 // SyncDisconnect is
 func SyncDisconnect(clinets []MQTT.Client) {

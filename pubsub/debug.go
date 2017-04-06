@@ -20,11 +20,13 @@ func CDebug(cResults []ConnectResult) {
 
 	sort.Sort(sortResults(cResults))
 
-	for _, r := range cResults {
-		//test := r.StartTime.Nanosecond
-		fmt.Printf("ID=%s, sTime=%s, eTime=%s, Durtime=%s \n",
-			r.ClientID, r.StartTime, r.EndTime, r.DurTime)
-	}
+	/*
+		for _, r := range cResults {
+			//test := r.StartTime.Nanosecond
+			fmt.Printf("ID=%s, sTime=%s, eTime=%s, Durtime=%s \n",
+				r.ClientID, r.StartTime, r.EndTime, r.DurTime)
+		}
+	*/
 
 	fastTime := cResults[0].StartTime
 	slowTime := cResults[len(cResults)-1].StartTime

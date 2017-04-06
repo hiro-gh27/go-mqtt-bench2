@@ -1,5 +1,9 @@
 package pubsub
 
+import (
+	MQTT "github.com/eclipse/paho.mqtt.golang"
+)
+
 // ExecOptions is
 type ExecOptions struct {
 	Broker      string // Broker URI
@@ -16,8 +20,21 @@ type ExecOptions struct {
 	Test        bool   //テスト
 	TrialNum    int    //試行回数
 	SynBacklog  int    //net.ipv4.tcp_max_syn_backlog =
+	AsyncFlag   bool   //ture mean asyncmode
 }
 
 // LoadOptions is
 type LoadOptions struct {
+}
+
+// PublishOptions is
+type PublishOptions struct {
+	Client   MQTT.Client
+	ID       int
+	TrialNum int
+
+	ProsessID          string
+	MessageSize        int
+	MaxPublishIntarval int
+	Qos                byte
 }
