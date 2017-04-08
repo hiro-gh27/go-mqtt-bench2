@@ -11,6 +11,8 @@ import (
 	pubsub "github.com/hiro-gh27/go-mqtt-bench2/pubsub"
 )
 
+const base = "go-mqtt-bench"
+
 func main() {
 	// init random seed
 	rand.Seed(time.Now().UnixNano())
@@ -29,9 +31,6 @@ func main() {
 
 	// export elasticseaech
 }
-
-const base = "go-mqtt-bench"
-
 func initOption() pubsub.PublishOptions2 {
 	// for connect
 	broker := flag.String("broker", "tcp://{host}:{port}", "URI of MQTT broker (required)")
