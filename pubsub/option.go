@@ -55,6 +55,7 @@ type PublishOptions2 struct {
 	MaxInterval int           // メッセージ毎の実行間隔時間(ms)
 	AsyncFlag   bool          //ture mean asyncmode
 	Clients     []MQTT.Client //クライアントをスライスで確保!!
+	TrialNum    int
 }
 
 // LoadOptions is

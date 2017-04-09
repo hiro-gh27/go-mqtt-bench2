@@ -6,24 +6,22 @@ import (
 	"strconv"
 	"sync"
 	"time"
-
-	MQTT "github.com/eclipse/paho.mqtt.golang"
 )
 
-var messagesize int
-var pubintarval int
+var messageSize int
+var maxIntarval int
 var qos byte
 var pid string
-var basetopic string
+var baseTopic string
 var trial int
 var count int
 
-func initPubOpts(opts ExecOptions) {
-	basetopic = opts.Topic
+func initPubOpts(opts PublishOptions2) {
+	baseTopic = opts.Topic
 	count = opts.Count
-	messagesize = opts.MessageSize
+	messageSize = opts.MessageSize
 	pid = strconv.FormatInt(int64(os.Getpid()), 16)
-	pubintarval = maxInterval
+	maxIntarval = maxInterval
 	trial = opts.TrialNum
 	qos = opts.Qos
 }
@@ -31,9 +29,9 @@ func initPubOpts(opts ExecOptions) {
 // "sync publish"
 func spub(pOpts PublishOptions) PublishResult {
 	var pResult PublishResult
-	message := RandomMessage(messagesize)
+	message := RandomMessage(messageSize)
 	clientID := fmt.Sprintf("%s-%d", pid, pOpts.ID)
-	topic := fmt.Sprintf(basetopic+"%s"+"/"+"%d", clientID, pOpts.TrialNum)
+	topic := fmt.Sprintf(baseTopic+"%s"+"/"+"%d", clientID, pOpts.TrialNum)
 	startTime := time.Now()
 	token := pOpts.Client.Publish(topic, qos, false, message)
 	token.Wait()
@@ -50,13 +48,13 @@ func spub(pOpts PublishOptions) PublishResult {
 }
 
 // SyncPublish is
-func SyncPublish(clients []MQTT.Client, opts ExecOptions) {
+func SyncPublish(opts PublishOptions2) {
 	initPubOpts(opts)
 	var pResults []PublishResult
 	for index := 0; index < opts.Count; index++ {
-		for id := 0; id < len(clients); id++ {
+		for id := 0; id < len(opts.Clients); id++ {
 			var pOpts PublishOptions
-			pOpts.Client = clients[id]
+			pOpts.Client = opts.Clients[id]
 			pOpts.ID = id
 			pOpts.TrialNum = index
 			pr := spub(pOpts)
@@ -70,11 +68,11 @@ func aspub(pOpts PublishOptions, freeze *sync.WaitGroup) []PublishResult {
 	var pResults []PublishResult
 	var waitTime time.Duration
 
-	message := RandomMessage(messagesize)
+	message := RandomMessage(messageSize)
 	clientID := fmt.Sprintf("%s-%d", pid, pOpts.ID)
-	topic := fmt.Sprintf(basetopic+"%s"+"/"+"%d", clientID, 0)
-	if pubintarval > 0 {
-		waitTime = RandomInterval(pubintarval)
+	topic := fmt.Sprintf(baseTopic+"%s"+"/"+"%d", clientID, 0)
+	if maxIntarval > 0 {
+		waitTime = RandomInterval(maxIntarval)
 	}
 	fmt.Print("ready!!")
 	freeze.Wait()
@@ -97,10 +95,10 @@ func aspub(pOpts PublishOptions, freeze *sync.WaitGroup) []PublishResult {
 	pResults = append(pResults, vals)
 
 	for index := 1; index < count; index++ {
-		message = RandomMessage(messagesize)
-		topic = fmt.Sprintf(basetopic+"%s"+"/"+"%d", clientID, index)
-		if pubintarval > 0 {
-			waitTime = RandomInterval(pubintarval)
+		message = RandomMessage(messageSize)
+		topic = fmt.Sprintf(baseTopic+"%s"+"/"+"%d", clientID, index)
+		if maxIntarval > 0 {
+			waitTime = RandomInterval(maxIntarval)
 			time.Sleep(waitTime)
 		}
 		starttime := time.Now()
@@ -120,18 +118,18 @@ func aspub(pOpts PublishOptions, freeze *sync.WaitGroup) []PublishResult {
 }
 
 // AsyncPublish is
-func AsyncPublish(clients []MQTT.Client, opts ExecOptions) {
+func AsyncPublish(opts PublishOptions2) {
 	initPubOpts(opts)
 	var pResults []PublishResult
 	wg := &sync.WaitGroup{}
 	freeze := &sync.WaitGroup{}
 	freeze.Add(1)
-	for id := 0; id < len(clients); id++ {
+	for id := 0; id < len(opts.Clients); id++ {
 		wg.Add(1)
 		go func(id int) {
 			defer wg.Done()
 			var pOpts PublishOptions
-			pOpts.Client = clients[id]
+			pOpts.Client = opts.Clients[id]
 			pOpts.ID = id
 			re := aspub(pOpts, freeze)
 			pResults = append(pResults, re...)

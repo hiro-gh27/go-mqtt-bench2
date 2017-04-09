@@ -24,13 +24,14 @@ func main() {
 	// execute publish benchmark
 	opts := initOption()
 	if opts.AsyncFlag {
-		pubsub.AsyncPublish()
+		//pubsub.AsyncPublish(opts)
 	} else {
-		pubsub.SyncPublish()
+		pubsub.SyncPublish(opts)
 	}
 
 	// export elasticseaech
 }
+
 func initOption() pubsub.PublishOptions2 {
 	// for connect
 	broker := flag.String("broker", "tcp://{host}:{port}", "URI of MQTT broker (required)")
@@ -44,6 +45,7 @@ func initOption() pubsub.PublishOptions2 {
 	size := flag.Int("size", 1024, "Message size per publish (byte)")
 	intervalTime := flag.Int("interval", 0, "Interval time per message (ms)")
 	asyncmode := flag.Bool("async", false, "ture mean asyncmode")
+	trial := flag.Int("trial", 1, "trial is number of how many loops are")
 
 	flag.Parse()
 	if len(os.Args) < 1 {
@@ -68,6 +70,7 @@ func initOption() pubsub.PublishOptions2 {
 	options.MaxInterval = *intervalTime
 	options.AsyncFlag = *asyncmode
 	options.Clients = connectedClients
+	options.TrialNum = *trial
 
 	pubsub.SyncDisconnect(options.Clients)
 	return options
